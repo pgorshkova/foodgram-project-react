@@ -10,4 +10,3 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ['email', 'username']
     list_filter = ['email', 'username']
     form = MyUserForm
-

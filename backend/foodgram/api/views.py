@@ -96,7 +96,7 @@ class UserViewSet(ModelViewSet):
             return Response(
                 data={'error': 'Yor cannot subscribe to yourself.'},
                 status=HTTP_400_BAD_REQUEST
-                    )
+                )
         if current_user != obj:
             if current_user in obj.subscribers.all():
                 obj.subscribers.remove(current_user)
