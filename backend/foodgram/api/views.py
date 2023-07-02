@@ -46,8 +46,8 @@ class UserViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def set_password(self, request, *args, **kwargs):
-        if (request.data.get('new_password')
-            and request.data.get('current_password')):
+        if (request.data.get('new_password') and
+            request.data.get('current_password')):
             current_user = self.request.user
             current_pass = current_user.password
             if check_password(
@@ -123,8 +123,9 @@ class UserViewSet(ModelViewSet):
         queryset = self.paginate_queryset([
             SubscriptionSerializer
             (subscription,
-            context={'request': self.request}).data
-            for subscription in user_subscriptions])
+            context={'request':
+                    self.request}).data for subscription in user_subscriptions
+            ])
         return self.get_paginated_response(queryset)
 
 
