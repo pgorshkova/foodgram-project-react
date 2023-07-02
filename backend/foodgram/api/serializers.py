@@ -240,8 +240,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             ingredient = ingredients_set[index]
             if ingredient and ingredient.get('ingredient'):
                 data_ingredients.append([get_object_or_404(
-                        Ingredient, pk=ingredient.get('ingredient').get('pk')),
-                        ingredients_set[index].get('amount')])
+                    Ingredient, pk=ingredient.get('ingredient').get('pk')),
+                    ingredients_set[index].get('amount')])
         if data_ingredients:
             IngredientRecipe.objects.filter(recipe=instance).delete()
             for ingredient in data_ingredients:
