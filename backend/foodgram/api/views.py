@@ -46,7 +46,8 @@ class UserViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def set_password(self, request, *args, **kwargs):
-        if (request.data.get('new_password') and request.data.get('current_password')):
+        if (request.data.get('new_password')
+            and request.data.get('current_password')):
             current_user = self.request.user
             current_pass = current_user.password
             if check_password(
@@ -94,8 +95,7 @@ class UserViewSet(ModelViewSet):
                     )
             return Response(
                 data={'error': 'Yor cannot subscribe to yourself.'},
-                status=HTTP_400_BAD_REQUEST
-                           )
+                status=HTTP_400_BAD_REQUEST)
         if current_user != obj:
             if current_user in obj.subscribers.all():
                 obj.subscribers.remove(current_user)
@@ -121,9 +121,10 @@ class UserViewSet(ModelViewSet):
     def subscriptions(self, *args, **kwargs):
         user_subscriptions = self.request.user.subscriptions.all()
         queryset = self.paginate_queryset([
-                SubscriptionSerializer(
-                subscription,
-                context={'request': self.request}).data for subscription in user_subscriptions])
+            SubscriptionSerializer
+            (subscription,
+            context={'request': self.request}).data
+            for subscription in user_subscriptions])
         return self.get_paginated_response(queryset)
 
 
