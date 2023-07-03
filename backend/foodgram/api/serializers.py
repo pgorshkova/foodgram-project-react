@@ -148,7 +148,7 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
                                            ingredient_id=ingredient_id
                                            ).exists():
             raise ValidationError("This ingredient added to the recipe.")
-        
+
         return data
 
 
@@ -231,7 +231,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                     IngredientRecipe(
                         recipe=instance,
                         ingredient=get_object_or_404(Ingredient,
-                                                    pk=ingredient.get('ingredient').get('pk')),
+                                        pk=ingredient.get('ingredient').get('pk')),
                         amount=ingredients_set[index].get('amount')
                     )
                 )

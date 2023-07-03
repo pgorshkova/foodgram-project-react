@@ -49,9 +49,9 @@ class UserViewSet(ModelViewSet):
         if not (request.data.get('new_password')
                 and request.data.get('current_password')):
             return Response(
-                    {'message': 'Incoming data is not valid.'},
-                    status=HTTP_400_BAD_REQUEST
-                )
+                {'message': 'Incoming data is not valid.'},
+                status=HTTP_400_BAD_REQUEST
+            )
 
         current_user = self.request.user
         current_pass = current_user.password
@@ -94,7 +94,7 @@ class UserViewSet(ModelViewSet):
                     )
                 else:
                     return Response(
-                        data={'error': 'You have already subscribed to this user.'},
+                        data={'error': 'You subscribed to this user.'},
                         status=HTTP_400_BAD_REQUEST
                     )
             return Response(
@@ -106,7 +106,7 @@ class UserViewSet(ModelViewSet):
             if obj.subscribers.filter(id=current_user.id).exists():
                 obj.subscribers.remove(current_user)
                 return Response(
-                    data={'message': 'You have successfully unsubscribed from the user.'},
+                    data={'message': 'You unsubscribed from the user.'},
                     status=HTTP_204_NO_CONTENT
                 )
             else:
@@ -194,7 +194,7 @@ class RecipeViewSet(ModelViewSet):
                 recipe.favorited_users.add(user)
                 return Response(
                     RecipeSmallReadOnlySerialiazer(self.get_recipe()).data
-                    )
+                )
             else:
                 return Response(
                     {'error': 'Item is already in favorited.'},
