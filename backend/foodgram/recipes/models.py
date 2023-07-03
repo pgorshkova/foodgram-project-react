@@ -128,6 +128,7 @@ class IngredientRecipe(models.Model):
     class Meta:
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецептах'
+        unique_together = ('ingredient', 'recipe')
 
     def __str__(self):
         return f'{self.recipe.author} recipe {self.ingredient.name}'
@@ -140,6 +141,7 @@ class TagRecipe(models.Model):
     class Meta:
         verbose_name = 'Тег в рецепте'
         verbose_name_plural = 'Теги в рецептах'
+        unique_together = ('tag', 'recipe')
 
     def __str__(self):
         return f'{self.tag} {self.recipe}'

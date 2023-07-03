@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.serializers import ValidationError
 
 from core.fields import Base64ImageField
 from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
@@ -139,6 +140,14 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
             'id': {'required': True}
         }
 
+    def validate(self, data):
+        recipe_id = self.context['view'].kwargs.get('pk')
+        ingredient_id = data.get('ingredient').id
+
+        if IngredientRecipe.objects.filter(recipe_id=recipe_id, ingredient_id=ingredient_id).exists():
+            raise ValidationError("This ingredient has already been added to the recipe.")
+        
+        return data
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
@@ -211,20 +220,27 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         return attrs
 
+    
+    def update_or_create_ingredients(self, instance, ingredients_set):
+        data_ingredients = []
+        for index, ingredient in enumerate(ingredients_set):
+            if ingredient and ingredient.get('ingredient'):
+                data_ingredients.append(
+                    IngredientRecipe(
+                        recipe=instance,
+                        ingredient=get_object_or_404(Ingredient, pk=ingredient.get('ingredient').get('pk')),
+                        amount=ingredients_set[index].get('amount')
+                    )
+                )
+
+        IngredientRecipe.objects.filter(recipe=instance).delete()
+        IngredientRecipe.objects.bulk_create(data_ingredients)
+
     def create(self, validated_data):
         ingredient_set = validated_data.pop('ingredientrecipe_set')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
-        for ingredient in ingredient_set:
-            current_ingredient_pk = ingredient.get('ingredient').get('pk')
-            current_ingredient = Ingredient.objects.get(
-                pk=current_ingredient_pk
-            )
-            IngredientRecipe.objects.create(
-                recipe=recipe,
-                ingredient=current_ingredient,
-                amount=ingredient.get('amount')
-            )
+        self.update_or_create_ingredients(recipe, ingredient_set)
         for tag in tags:
             TagRecipe.objects.create(
                 tag=tag,
@@ -232,44 +248,31 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         return recipe
 
-    def update(self, instance: Recipe, validated_data):
+    def update(self, instance, validated_data):
         ingredients_set = validated_data.pop('ingredientrecipe_set', [])
-        super(RecipeSerializer, self).update(instance, validated_data)
-        data_ingredients = list()
-        for index in range(len(ingredients_set)):
-            ingredient = ingredients_set[index]
-            if ingredient and ingredient.get('ingredient'):
-                data_ingredients.append([get_object_or_404(
-                    Ingredient, pk=ingredient.get('ingredient').get('pk')),
-                    ingredients_set[index].get('amount')])
-        if data_ingredients:
-            IngredientRecipe.objects.filter(recipe=instance).delete()
-            for ingredient in data_ingredients:
-                IngredientRecipe.objects.create(
-                    recipe=instance,
-                    ingredient=ingredient[0],
-                    amount=ingredient[1]
-                )
+        instance = super().update(instance, validated_data)
+        self.update_or_create_ingredients(instance, ingredients_set)
         return instance
 
+    
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        new_tag_representation = list()
-        for tag_id in ret['tags']:
-            tag = get_object_or_404(Tag, pk=tag_id)
-            serialized_data = TagSerializer(tag)
-            new_tag_representation.append(serialized_data.data)
+        new_tag_representation = []
+        tag_ids = ret['tags']
+        tags = Tag.objects.filter(pk__in=tag_ids)
+        serialized_data = TagSerializer(tags, many=True)
+        new_tag_representation = serialized_data.data
         ret['tags'] = new_tag_representation
         return ret
 
     def get_is_in_shopping_cart(self, obj):
         if self.context:
             user = self.context['request'].user
-            return user in obj.shopping_users.all()
-        return
+            return obj.shopping_users.filter(pk=user.pk).exists()
+        return False
 
     def get_is_favorited(self, obj):
         if self.context:
             user = self.context['request'].user
-            return user in obj.favorited_users.all()
-        return
+            return obj.favorited_users.filter(pk=user.pk).exists()
+        return False

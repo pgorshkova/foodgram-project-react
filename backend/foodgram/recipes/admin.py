@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import Ingredient, Recipe, Tag
 
 
@@ -10,7 +11,7 @@ class RecipeAdmin(admin.ModelAdmin):
     readonly_fields = ['number_of_additions']
 
     def number_of_additions(self, obj: Recipe):
-        return len(obj.shopping_users.all())
+        return obj.shopping_users.all().count()
 
 
 @admin.register(Ingredient)

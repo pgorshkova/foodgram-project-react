@@ -23,7 +23,7 @@ from .serializers import (RecipeSerializer, IngredientSerializer,
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
     @action(
         detail=False,
@@ -40,75 +40,83 @@ class UserViewSet(ModelViewSet):
             data
         )
 
+
     @action(
         detail=False,
         methods=['post', ],
         permission_classes=[IsAuthenticated]
     )
     def set_password(self, request, *args, **kwargs):
-        if (request.data.get('new_password')
+        if not (request.data.get('new_password')
                 and request.data.get('current_password')):
-            current_user = self.request.user
-            current_pass = current_user.password
-            if check_password(
-                    request.data.get('current_password'), current_pass
-            ):
-                current_user.set_password(request.data.get('new_password'))
-                current_user.save()
-                return Response({'message': 'Password successfully changed.'})
-            else:
-                return Response(
-                    content_type='application/json',
-                    data={'current_password': 'Wrong password.'},
-                    status=HTTP_400_BAD_REQUEST
-                )
-        else:
             return Response(
-                {'message': 'Incoming data is not valid.'},
+                    {'message': 'Incoming data is not valid.'},
                 status=HTTP_400_BAD_REQUEST
             )
+
+        current_user = self.request.user
+        current_pass = current_user.password
+
+        if not check_password(
+            request.data.get('current_password'), current_pass
+        ):
+            return Response(
+                content_type='application/json',
+                data={'current_password': 'Wrong password.'},
+                status=HTTP_400_BAD_REQUEST
+            )
+
+        current_user.set_password(request.data.get('new_password'))
+        current_user.save()
+
+        return Response({'message': 'Password successfully changed.'})
 
     @action(
         methods=['post', 'delete', ],
         detail=True,
         permission_classes=[IsAuthenticated]
     )
+    
     def subscribe(self, *args, **kwargs):
         current_user = self.request.user
-        obj = get_object_or_404(User, pk=self.kwargs.get('pk'))
+        user_id = self.kwargs.get('pk')
+        obj = get_object_or_404(User, pk=user_id)
+
         if self.request.method == 'POST':
             if current_user != obj:
-                if current_user not in obj.subscribers.all():
+                if not obj.subscribers.filter(id=current_user.id).exists():
                     obj.subscribers.add(current_user)
                     data = SubscriptionSerializer(
                         obj,
-                        context={'request': self.request}).data
+                        context={'request': self.request}
+                    ).data
                     return Response(
                         data=data,
                         status=HTTP_201_CREATED
                     )
                 else:
                     return Response(
-                        data={'error': 'You have already subscribed '
-                                       'to this user.'},
+                        data={'error': 'You have already subscribed to this user.'},
                         status=HTTP_400_BAD_REQUEST
                     )
             return Response(
-                data={'error': 'Yor cannot subscribe to yourself.'},
-                status=HTTP_400_BAD_REQUEST)
+                data={'error': 'You cannot subscribe to yourself.'},
+                status=HTTP_400_BAD_REQUEST
+            )
+
         if current_user != obj:
-            if current_user in obj.subscribers.all():
+            if obj.subscribers.filter(id=current_user.id).exists():
                 obj.subscribers.remove(current_user)
                 return Response(
-                    data={'message': 'You have sucessfully '
-                                     'unsubscriped from the user.'},
+                    data={'message': 'You have successfully unsubscribed from the user.'},
                     status=HTTP_204_NO_CONTENT
                 )
             else:
                 return Response(
-                    data={'error': 'You even have not subscribed yet.'},
+                    data={'error': 'You have not subscribed yet.'},
                     status=HTTP_400_BAD_REQUEST
                 )
+
         return Response(
             status=HTTP_400_BAD_REQUEST
         )
@@ -120,13 +128,12 @@ class UserViewSet(ModelViewSet):
     )
     def subscriptions(self, *args, **kwargs):
         user_subscriptions = self.request.user.subscriptions.all()
-        queryset = self.paginate_queryset([
-            SubscriptionSerializer(
-                subscription,
-                context={'request': self.request}
-            ).data
-            for subscription in user_subscriptions
-        ])
+        serializer = SubscriptionSerializer(
+            user_subscriptions,
+            many=True,
+            context={'request': self.request}
+        )
+        queryset = self.paginate_queryset(serializer.data)
         return self.get_paginated_response(queryset)
 
 
@@ -153,38 +160,6 @@ class RecipeViewSet(ModelViewSet):
 
     def get_recipe(self):
         return get_object_or_404(Recipe, pk=self.kwargs.get('pk'))
-
-    @action(
-        detail=True,
-        methods=['post', 'delete'],
-        permission_classes=[IsAuthenticated]
-    )
-    def shopping_cart(self, *args, **kwargs):
-        recipe = self.get_recipe()
-        user = self.request.user
-        if self.request.method == 'POST':
-            if user not in recipe.shopping_users.all():
-                recipe.shopping_users.add(user)
-                return Response(
-                    RecipeSmallReadOnlySerialiazer(self.get_recipe()).data
-                )
-            else:
-                return Response(
-                    data={'error': 'Item is already in shopping cart.'},
-                    status=HTTP_400_BAD_REQUEST
-                )
-        if user in recipe.shopping_users.all():
-            recipe.shopping_users.remove(user)
-            return Response(
-                {'message': 'Item is succefully removed from your '
-                            'shopping cart.'},
-                status=HTTP_204_NO_CONTENT
-            )
-        else:
-            return Response(
-                {'error': 'Item is not in your shopping cart.'},
-                status=HTTP_400_BAD_REQUEST
-            )
 
     @action(
         detail=False,
@@ -215,20 +190,13 @@ class RecipeViewSet(ModelViewSet):
         Recipe._meta.ordering = ['-created']
         return response
 
-    @action(
-        detail=True,
-        methods=['post', 'delete', ],
-        permission_classes=[IsAuthenticated]
-    )
-    def favorite(self, *args, **kwargs):
-        recipe = self.get_recipe()
-        user = self.request.user
+    def update_favorite(self, recipe, user):
         if self.request.method == 'POST':
             if user not in recipe.favorited_users.all():
                 recipe.favorited_users.add(user)
                 return Response(
                     RecipeSmallReadOnlySerialiazer(self.get_recipe()).data
-                )
+                    )
             else:
                 return Response(
                     {'error': 'Item is already in favorited.'},
@@ -246,7 +214,25 @@ class RecipeViewSet(ModelViewSet):
                 {'error': 'Item even is not in your favorited yet.'},
                 status=HTTP_400_BAD_REQUEST
             )
+    @action(
+        detail=True,
+        methods=['post', 'delete', ],
+        permission_classes=[IsAuthenticated]
+    )
+    def favorite(self, *args, **kwargs):
+        recipe = self.get_recipe()
+        user = self.request.user
+        return self.update_favorite(recipe, user)
 
+    @action(
+        detail=False,
+        methods=['post', 'delete', ],
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, *args, **kwargs):
+        recipe = self.get_recipe()
+        user = self.request.user
+        return self.update_favorite(recipe, user)
 
 class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
