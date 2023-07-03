@@ -230,9 +230,10 @@ class RecipeSerializer(serializers.ModelSerializer):
                 data_ingredients.append(
                     IngredientRecipe(
                         recipe=instance,
-                        ingredient=get_object_or_404(Ingredient,
-                                        pk=ingredient.get('ingredient').get('pk')),
-                        amount=ingredients_set[index].get('amount')
+                        ingredient=get_object_or_404(
+                            Ingredient,
+                            pk=ingredient.get('ingredient').get('pk')),
+                            amount=ingredients_set[index].get('amount')
                     )
                 )
 
