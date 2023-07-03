@@ -233,7 +233,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                         ingredient=get_object_or_404(
                             Ingredient,
                             pk=ingredient.get('ingredient').get('pk')),
-                            amount=ingredients_set[index].get('amount')
+                        amount=ingredients_set[index].get('amount')
                     )
                 )
 
