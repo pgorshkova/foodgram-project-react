@@ -144,10 +144,13 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
         recipe_id = self.context['view'].kwargs.get('pk')
         ingredient_id = data.get('ingredient').id
 
-        if IngredientRecipe.objects.filter(recipe_id=recipe_id, ingredient_id=ingredient_id).exists():
-            raise ValidationError("This ingredient has already been added to the recipe.")
+        if IngredientRecipe.objects.filter(recipe_id=recipe_id,
+                                           ingredient_id=ingredient_id
+                                           ).exists():
+            raise ValidationError("This ingredient added to the recipe.")
         
         return data
+
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
@@ -220,7 +223,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         return attrs
 
-    
     def update_or_create_ingredients(self, instance, ingredients_set):
         data_ingredients = []
         for index, ingredient in enumerate(ingredients_set):
@@ -228,7 +230,8 @@ class RecipeSerializer(serializers.ModelSerializer):
                 data_ingredients.append(
                     IngredientRecipe(
                         recipe=instance,
-                        ingredient=get_object_or_404(Ingredient, pk=ingredient.get('ingredient').get('pk')),
+                        ingredient=get_object_or_404(Ingredient,
+                                                    pk=ingredient.get('ingredient').get('pk')),
                         amount=ingredients_set[index].get('amount')
                     )
                 )
@@ -254,7 +257,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.update_or_create_ingredients(instance, ingredients_set)
         return instance
 
-    
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         new_tag_representation = []

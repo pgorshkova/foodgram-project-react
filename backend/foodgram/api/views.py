@@ -40,7 +40,6 @@ class UserViewSet(ModelViewSet):
             data
         )
 
-
     @action(
         detail=False,
         methods=['post', ],
@@ -51,8 +50,8 @@ class UserViewSet(ModelViewSet):
                 and request.data.get('current_password')):
             return Response(
                     {'message': 'Incoming data is not valid.'},
-                status=HTTP_400_BAD_REQUEST
-            )
+                    status=HTTP_400_BAD_REQUEST
+                )
 
         current_user = self.request.user
         current_pass = current_user.password
@@ -76,7 +75,6 @@ class UserViewSet(ModelViewSet):
         detail=True,
         permission_classes=[IsAuthenticated]
     )
-    
     def subscribe(self, *args, **kwargs):
         current_user = self.request.user
         user_id = self.kwargs.get('pk')
@@ -214,6 +212,7 @@ class RecipeViewSet(ModelViewSet):
                 {'error': 'Item even is not in your favorited yet.'},
                 status=HTTP_400_BAD_REQUEST
             )
+
     @action(
         detail=True,
         methods=['post', 'delete', ],
@@ -233,6 +232,7 @@ class RecipeViewSet(ModelViewSet):
         recipe = self.get_recipe()
         user = self.request.user
         return self.update_favorite(recipe, user)
+
 
 class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
