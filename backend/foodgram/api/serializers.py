@@ -140,17 +140,6 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
             'id': {'required': True}
         }
 
-    def validate(self, data):
-        recipe_id = self.context['view'].kwargs.get('pk')
-        ingredient_id = data.get('ingredient').id
-
-        if IngredientRecipe.objects.filter(recipe_id=recipe_id,
-                                           ingredient_id=ingredient_id
-                                           ).exists():
-            raise ValidationError("This ingredient added to the recipe.")
-
-        return data
-
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
