@@ -3,7 +3,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.serializers import ValidationError
 
 from core.fields import Base64ImageField
 from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
@@ -196,10 +195,10 @@ class RecipeSerializer(serializers.ModelSerializer):
                     f'Theres no ingredient with id {pk}.'
                 )
             if pk in already_exists:
-               raise serializers.ValidationError(
+                raise serializers.ValidationError(
                     f'The ingredient with id {pk} already exists.'
-               )
-            already_exists.append(pk) 
+                )
+            already_exists.append(pk)
         return values
 
     def validate(self, attrs):
