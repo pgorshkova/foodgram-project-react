@@ -153,6 +153,7 @@ class TagRecipe(models.Model):
                 name='unique_tag_recipe'
             )
         ]
+
     def __str__(self):
         return f'{self.tag} {self.recipe}'
 

@@ -229,6 +229,7 @@ class RecipeViewSet(ModelViewSet):
         else:
             return self.delete_from(ShoppingCart, request.user, pk)
 
+
 class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
