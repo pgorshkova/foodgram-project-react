@@ -1,11 +1,10 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404
+from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
 from rest_framework import serializers
 
 from core.fields import Base64ImageField
-from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
 from users.models import User
 
 
@@ -219,17 +218,14 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def update_or_create_ingredients(self, instance, ingredients_set):
         data_ingredients = []
-        for index, ingredient in enumerate(ingredients_set):
-            if ingredient and ingredient.get('ingredient'):
-                data_ingredients.append(
-                    IngredientRecipe(
-                        recipe=instance,
-                        ingredient=get_object_or_404(
-                            Ingredient,
-                            pk=ingredient.get('ingredient').get('pk')),
-                        amount=ingredients_set[index].get('amount')
-                    )
+        for ingredient in ingredients_set:
+            data_ingredients.append(
+                IngredientRecipe(
+                    recipe=instance,
+                    ingredient_id=ingredient.get('ingredient').get('pk'),
+                    amount=ingredient.get('amount')
                 )
+            )
 
         IngredientRecipe.objects.filter(recipe=instance).delete()
         IngredientRecipe.objects.bulk_create(data_ingredients)
@@ -239,11 +235,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         self.update_or_create_ingredients(recipe, ingredient_set)
-        for tag in tags:
-            TagRecipe.objects.create(
-                tag=tag,
-                recipe=recipe
-            )
+        TagRecipe.objects.bulk_create([
+            TagRecipe(tag=tag, recipe=recipe) for tag in tags
+        ])
         return recipe
 
     def update(self, instance, validated_data):

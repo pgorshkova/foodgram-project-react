@@ -10,7 +10,8 @@ from rest_framework.status import (HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT,
                                    HTTP_201_CREATED)
 from rest_framework.viewsets import ModelViewSet
 
-from recipes.models import Recipe, Ingredient, Tag
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            ShoppingCart, Tag)
 from users.models import User
 from .filters import RecipeFilter, IngredientFilter
 from .permissions import CustomRecipePermissions
@@ -79,10 +80,11 @@ class UserViewSet(ModelViewSet):
         current_user = self.request.user
         user_id = self.kwargs.get('pk')
         obj = get_object_or_404(User, pk=user_id)
+        subscription = obj.subscribers.filter(id=current_user.id).exists()
 
         if self.request.method == 'POST':
             if current_user != obj:
-                if not obj.subscribers.filter(id=current_user.id).exists():
+                if not subscription:
                     obj.subscribers.add(current_user)
                     data = SubscriptionSerializer(
                         obj,
@@ -103,7 +105,7 @@ class UserViewSet(ModelViewSet):
             )
 
         if current_user != obj:
-            if obj.subscribers.filter(id=current_user.id).exists():
+            if subscription:
                 obj.subscribers.remove(current_user)
                 return Response(
                     data={'message': 'You unsubscribed from the user.'},
@@ -188,51 +190,44 @@ class RecipeViewSet(ModelViewSet):
         Recipe._meta.ordering = ['-created']
         return response
 
-    def update_favorite(self, recipe, user):
-        if self.request.method == 'POST':
-            if user not in recipe.favorited_users.all():
-                recipe.favorited_users.add(user)
-                return Response(
-                    RecipeSmallReadOnlySerialiazer(self.get_recipe()).data
-                )
-            else:
-                return Response(
-                    {'error': 'Item is already in favorited.'},
-                    status=HTTP_400_BAD_REQUEST
-                )
-        if user in recipe.favorited_users.all():
-            recipe.favorited_users.remove(user)
-            return Response(
-                {'message': 'Item is succefully removed from your '
-                            'favorited.'},
-                status=HTTP_204_NO_CONTENT
-            )
-        else:
-            return Response(
-                {'error': 'Item even is not in your favorited yet.'},
-                status=HTTP_400_BAD_REQUEST
-            )
+    def add_to(self, model, user, pk):
+        if model.objects.filter(user=user, recipe__id=pk).exists():
+            return Response({'errors': 'Recipe has already been added!'},
+                            status=HTTP_400_BAD_REQUEST)
+        recipe = get_object_or_404(Recipe, id=pk)
+        model.objects.create(user=user, recipe=recipe)
+        serializer = RecipeSmallReadOnlySerialiazer(recipe)
+        return Response(serializer.data, status=HTTP_201_CREATED)
+
+    def delete_from(self, model, user, pk):
+        obj = model.objects.filter(user=user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=HTTP_204_NO_CONTENT)
+        return Response({'errors': 'Recipe has already been deleted!'},
+                        status=HTTP_400_BAD_REQUEST)
 
     @action(
         detail=True,
-        methods=['post', 'delete', ],
+        methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
     )
-    def favorite(self, *args, **kwargs):
-        recipe = self.get_recipe()
-        user = self.request.user
-        return self.update_favorite(recipe, user)
+    def favorite(self, request, pk):
+        if request.method == 'POST':
+            return self.add_to(Favorite, request.user, pk)
+        else:
+            return self.delete_from(Favorite, request.user, pk)
 
     @action(
-        detail=False,
-        methods=['post', 'delete', ],
+        detail=True,
+        methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
     )
-    def shopping_cart(self, *args, **kwargs):
-        recipe = self.get_recipe()
-        user = self.request.user
-        return self.update_favorite(recipe, user)
-
+    def shopping_cart(self, request, pk):
+        if request.method == 'POST':
+            return self.add_to(ShoppingCart, request.user, pk)
+        else:
+            return self.delete_from(ShoppingCart, request.user, pk)
 
 class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
