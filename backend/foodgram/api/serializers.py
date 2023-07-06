@@ -1,10 +1,12 @@
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
-from django.core.paginator import Paginator
-from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
+
 from rest_framework import serializers
 
 from core.fields import Base64ImageField
+from django.contrib.auth.models import AnonymousUser
+from django.core.paginator import Paginator
+from recipes.models import (Ingredient, IngredientRecipe,
+                            Recipe, Tag, TagRecipe)
 from users.models import User
 
 
