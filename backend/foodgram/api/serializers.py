@@ -113,7 +113,7 @@ class UserSerializer(serializers.ModelSerializer):
             return False
         return User.objects.filter(pk=user.pk, subscriptions=obj).exists()
 
-    
+
 class IngredientRecipeSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField(
