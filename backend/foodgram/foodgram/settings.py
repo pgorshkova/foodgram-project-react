@@ -10,7 +10,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -64,6 +64,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
+
 
 
 DATABASES = {
@@ -124,3 +125,7 @@ REST_FRAMEWORK = {
         'api.paginators.CustomPagination',
     'PAGE_SIZE': 6,
 }
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
