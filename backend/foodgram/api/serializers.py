@@ -96,6 +96,7 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
+            'password',
             'is_subscribed'
         ]
         read_only_fields = ['id', ]
@@ -234,7 +235,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredient_set = validated_data.pop('ingredientrecipe_set')
         tags = validated_data.pop('tags')
-        recipe = super().create(validated_data)
+        recipe = Recipe.objects.create(**validated_data)
         self.update_or_create_ingredients(recipe, ingredient_set)
         TagRecipe.objects.bulk_create([
             TagRecipe(tag=tag, recipe=recipe) for tag in tags

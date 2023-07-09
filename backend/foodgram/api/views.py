@@ -24,7 +24,7 @@ from .serializers import (RecipeSerializer, IngredientSerializer,
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
     @action(
         detail=False,
