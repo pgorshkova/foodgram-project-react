@@ -196,9 +196,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             if pk is None:
                 raise serializers.ValidationError('Ingredient pk is required.')
             if not Ingredient.objects.filter(pk=pk).exists():
-                raise serializers.ValidationError(f'There is no ingredient with id {pk}.')
+                raise serializers.ValidationError(f'No ingredient with id {pk}.')
             if pk in already_exists:
-                raise serializers.ValidationError(f'The ingredient with id {pk} already exists.')
+                raise serializers.ValidationError(f'The ingredient with id {pk}'
+                                                  'already exists.')
             already_exists.append(pk)
         return values
 
