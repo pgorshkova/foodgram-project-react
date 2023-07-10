@@ -18,7 +18,7 @@ from .permissions import CustomRecipePermissions
 from .serializers import (RecipeSerializer, IngredientSerializer,
                           TagSerializer, UserSerializer,
                           SubscriptionSerializer,
-                          RecipeSmallReadOnlySerialiazer)
+                          RecipeSmallSerializer)
 
 
 class UserViewSet(ModelViewSet):
@@ -196,7 +196,7 @@ class RecipeViewSet(ModelViewSet):
                             status=HTTP_400_BAD_REQUEST)
         recipe = get_object_or_404(Recipe, id=pk)
         model.objects.create(user=user, recipe=recipe)
-        serializer = RecipeSmallReadOnlySerialiazer(recipe)
+        serializer = RecipeSmallSerializer(recipe)
         return Response(serializer.data, status=HTTP_201_CREATED)
 
     def delete_from(self, model, user, pk):
