@@ -257,14 +257,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         ret['tags'] = new_tag_representation
         return ret
 
-    def get_is_in_shopping_cart(self, obj):
-        if self.context:
-            user = self.context['request'].user
-            return obj.shopping_users.filter(pk=user.pk).exists()
-        return False
+    def get_is_favorited(self, recipe):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return user.favorites.filter(recipe=recipe).exists()
 
-    def get_is_favorited(self, obj):
-        if self.context:
-            user = self.context['request'].user
-            return obj.favorited_users.filter(pk=user.pk).exists()
-        return False
+    def get_is_in_shopping_cart(self, recipe):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return user.shopping_cart.filter(recipe=recipe).exists()
