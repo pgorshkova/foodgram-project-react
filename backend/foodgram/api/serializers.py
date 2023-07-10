@@ -269,3 +269,14 @@ class RecipeSerializer(serializers.ModelSerializer):
             user = self.context['request'].user
             return obj.favorited_users.filter(pk=user.pk).exists()
         return False
+
+class RecipeSmallSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = [
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        ]
