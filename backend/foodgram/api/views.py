@@ -190,42 +190,43 @@ class RecipeViewSet(ModelViewSet):
         Recipe._meta.ordering = ['-created']
         return response
 
-    def add_to(self, model, user, pk):
-        if model.objects.filter(user=user, recipe__id=pk).exists():
-            return Response({'errors': 'Recipe has already been added!'},
-                            status=HTTP_400_BAD_REQUEST)
-        recipe = get_object_or_404(Recipe, pk=pk)
-        model.objects.create(user=user, recipe=recipe)
-        serializer = RecipeSmallSerializer(recipe)
-        return Response(serializer.data, status=HTTP_201_CREATED)
+    def add_to(self, model, user, pk): 
+        if model.objects.filter(user=user, recipe_id=pk).exists(): 
+            return Response({'errors': 'Recipe has already been added!'}, 
+                            status=HTTP_400_BAD_REQUEST) 
+        recipe = get_object_or_404(Recipe, id=pk) 
+        model.objects.create(user=user, recipe=recipe) 
+        serializer = RecipeSmallSerializer(recipe) 
+        return Response(serializer.data, status=HTTP_201_CREATED) 
+ 
+    def delete_from(self, model, user, pk): 
+        obj = model.objects.filter(user=user, recipe_id=pk) 
+        if obj.exists(): 
+            obj.delete() 
+            return Response(status=HTTP_204_NO_CONTENT) 
+        return Response({'errors': 'Recipe has already been deleted!'}, 
+                        status=HTTP_400_BAD_REQUEST) 
+ 
+    @action( 
+        detail=True, 
+        methods=['post', 'delete'], 
+        permission_classes=[IsAuthenticated] 
+    ) 
+    def favorite(self, request, pk): 
+        if request.method == 'POST': 
+            return self.add_to(Favorite, request.user, pk) 
+        return self.delete_from(Favorite, request.user, pk) 
+ 
+    @action( 
+        detail=True, 
+        methods=['post', 'delete'], 
+        permission_classes=[IsAuthenticated] 
+    ) 
+    def shopping_cart(self, request, pk): 
+        if request.method == 'POST': 
+            return self.add_to(ShoppingCart, request.user, pk) 
+        return self.delete_from(ShoppingCart, request.user, pk) 
 
-    def delete_from(self, model, user, pk):
-        obj = model.objects.filter(user=user, recipe__pk=pk)
-        if obj.exists():
-            obj.delete()
-            return Response(status=HTTP_204_NO_CONTENT)
-        return Response({'errors': 'Recipe has already been deleted!'},
-                        status=HTTP_400_BAD_REQUEST)
-
-    @action(
-        detail=True,
-        methods=['post', 'delete'],
-        permission_classes=[IsAuthenticated]
-    )
-    def favorite(self, request, pk):
-        if request.method == 'POST':
-            return self.add_to(Favorite, request.user, pk)
-        return self.delete_from(Favorite, request.user, pk)
-
-    @action(
-        detail=True,
-        methods=['post', 'delete'],
-        permission_classes=[IsAuthenticated]
-    )
-    def shopping_cart(self, request, pk):
-        if request.method == 'POST':
-            return self.add_to(ShoppingCart, request.user, pk)
-        return self.delete_from(ShoppingCart, request.user, pk)
 
 
 class IngredientViewSet(ModelViewSet):
