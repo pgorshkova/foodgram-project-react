@@ -179,6 +179,47 @@ class RecipeSerializer(serializers.ModelSerializer):
             'cooking_time'
         ]
 
+    def get_is_in_shopping_cart(self, obj):
+        if self.context:
+            user = self.context['request'].user
+            return obj.shopping_users.filter(pk=user.pk).exists()
+        return False
+
+    def get_is_favorited(self, obj):
+        if self.context:
+            user = self.context['request'].user
+            return obj.favorited_users.filter(pk=user.pk).exists()
+        return False
+
+class RecipeCreateSerializer(serializers.ModelSerializer):
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all()
+    )
+    author = UserSerializer(
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
+    image = Base64ImageField()
+    ingredients = IngredientRecipeSerializer(
+        source='ingredientrecipe_set',
+        many=True,
+        required=True
+    )
+
+    class Meta:
+        model = Recipe
+        fields = [
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'name',
+            'image',
+            'text',
+            'cooking_time'
+        ]
+
         validators = [
             serializers.UniqueTogetherValidator(
                 queryset=Recipe.objects.all(),
@@ -256,18 +297,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         new_tag_representation = serialized_data.data
         ret['tags'] = new_tag_representation
         return ret
-
-    def get_is_in_shopping_cart(self, obj):
-        if self.context:
-            user = self.context['request'].user
-            return obj.shopping_users.filter(pk=user.pk).exists()
-        return False
-
-    def get_is_favorited(self, obj):
-        if self.context:
-            user = self.context['request'].user
-            return obj.favorited_users.filter(pk=user.pk).exists()
-        return False
 
 
 class RecipeSmallSerializer(serializers.ModelSerializer):

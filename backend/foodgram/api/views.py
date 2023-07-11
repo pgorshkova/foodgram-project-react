@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT,
                                    HTTP_201_CREATED)
@@ -15,10 +15,11 @@ from recipes.models import (Favorite, Ingredient, Recipe,
 from users.models import User
 from .filters import RecipeFilter, IngredientFilter
 from .permissions import CustomRecipePermissions
-from .serializers import (RecipeSerializer, IngredientSerializer,
+from .serializers import (RecipeSerializer, RecipeCreateSerializer,
+                          RecipeSmallSerializer, IngredientSerializer,
                           TagSerializer, UserSerializer,
-                          SubscriptionSerializer,
-                          RecipeSmallSerializer)
+                          SubscriptionSerializer
+                          )
 
 
 class UserViewSet(ModelViewSet):
@@ -145,12 +146,10 @@ class RecipeViewSet(ModelViewSet):
     filterset_class = RecipeFilter
     http_method_names = ['get', 'post', 'patch', 'delete', ]
 
-    def get_queryset(self):
-        if self.request.query_params.get('is_favorited'):
-            return self.request.user.favorited.all()
-        if self.request.query_params.get('is_in_shopping_cart'):
-            return self.request.user.recipe_set.all()
-        return super().get_queryset()
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeCreateSerializer
 
     def perform_create(self, serializer):
         serializer.is_valid(raise_exception=True)
@@ -191,7 +190,7 @@ class RecipeViewSet(ModelViewSet):
         return response
 
     def add_to(self, model, user, pk):
-        if model.objects.filter(user=user, recipe_id=pk).exists():
+        if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response({'errors': 'Recipe has already been added!'},
                             status=HTTP_400_BAD_REQUEST)
         recipe = get_object_or_404(Recipe, id=pk)
@@ -200,7 +199,7 @@ class RecipeViewSet(ModelViewSet):
         return Response(serializer.data, status=HTTP_201_CREATED)
 
     def delete_from(self, model, user, pk):
-        obj = model.objects.filter(user=user, recipe_id=pk)
+        obj = model.objects.filter(user=user, recipe__id=pk)
         if obj.exists():
             obj.delete()
             return Response(status=HTTP_204_NO_CONTENT)
