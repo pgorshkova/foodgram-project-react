@@ -186,19 +186,19 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         ]
 
-    def validate_ingredients(self, values): 
-        already_exists = [] 
-        for value in values: 
-            pk = value.get('ingredient').get('pk') 
-            if not Ingredient.objects.filter(pk=pk).exists(): 
-                raise serializers.ValidationError( 
-                    f'Theres no ingredient with id {pk}.' 
-                ) 
-            if pk in already_exists: 
-                raise serializers.ValidationError( 
-                    f'The ingredient with id {pk} already exists.' 
-                ) 
-            already_exists.append(pk) 
+    def validate_ingredients(self, values):
+        already_exists = []
+        for value in values:
+            pk = value.get('ingredient').get('pk')
+            if not Ingredient.objects.filter(pk=pk).exists():
+                raise serializers.ValidationError(
+                    f'Theres no ingredient with id {pk}.'
+                )
+            if pk in already_exists:
+                raise serializers.ValidationError(
+                    f'The ingredient with id {pk} already exists.'
+                )
+            already_exists.append(pk)
         return values
 
     def validate(self, attrs):
