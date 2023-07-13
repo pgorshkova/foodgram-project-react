@@ -191,6 +191,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             return obj.favorited_users.filter(pk=user.pk).exists()
         return False
 
+
 class RecipeCreateSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
