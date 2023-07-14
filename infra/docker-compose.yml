@@ -14,7 +14,7 @@ services:
       - ./.env
 
   backend:
-    image: pgorshkova/foodgram_backend:latest
+    image: pgorshkova/foodgram-backend:latest
     restart: always
     container_name: backend
     ports:
@@ -28,7 +28,7 @@ services:
       - db
 
   frontend:
-    image: pgorshkova/foodgram_frontend:latest
+    image: pgorshkova/foodgram-frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
