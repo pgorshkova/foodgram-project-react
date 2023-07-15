@@ -145,7 +145,14 @@ class RecipeViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
     http_method_names = ['get', 'post', 'patch', 'delete', ]
-
+    
+    def get_queryset(self): 
+        if self.request.query_params.get('is_favorited'): 
+            return self.request.user.favorited.all() 
+        if self.request.query_params.get('is_in_shopping_cart'): 
+            return self.request.user.recipe_set.all() 
+        return super().get_queryset() 
+    
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return RecipeSerializer
