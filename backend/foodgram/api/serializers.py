@@ -140,10 +140,16 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
         }
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = '__all__'
+
+
 class RecipeSerializer(serializers.ModelSerializer):
-    tags = serializers.PrimaryKeyRelatedField(
+    tags = TagSerializer(
         many=True,
-        queryset=Tag.objects.all()
+        read_only=True
     )
     author = UserSerializer(
         read_only=True,
@@ -192,6 +198,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         return False
 
 
+class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = IngredientRecipe
+        fields = ('id', 'amount')
+
+
 class RecipeCreateSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -202,7 +216,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault()
     )
     image = Base64ImageField()
-    ingredients = IngredientRecipeSerializer(
+    ingredients = RecipeCreateIngredientsSerializer(
         source='ingredientrecipe_set',
         many=True,
         required=True

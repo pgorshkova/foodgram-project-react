@@ -140,19 +140,18 @@ class UserViewSet(ModelViewSet):
 
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
     permission_classes = [CustomRecipePermissions]
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
     http_method_names = ['get', 'post', 'patch', 'delete', ]
-    
-    def get_queryset(self): 
-        if self.request.query_params.get('is_favorited'): 
-            return self.request.user.favorited.all() 
-        if self.request.query_params.get('is_in_shopping_cart'): 
-            return self.request.user.recipe_set.all() 
-        return super().get_queryset() 
-    
+
+    def get_queryset(self):
+        if self.request.query_params.get('is_favorited'):
+            return self.request.user.favorited.all()
+        if self.request.query_params.get('is_in_shopping_cart'):
+            return self.request.user.recipe_set.all()
+        return super().get_queryset()
+
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return RecipeSerializer
@@ -221,7 +220,8 @@ class RecipeViewSet(ModelViewSet):
     def favorite(self, request, pk):
         if request.method == 'POST':
             return self.add_to(Favorite, request.user, pk)
-        return self.delete_from(Favorite, request.user, pk)
+        else:
+            return self.delete_from(Favorite, request.user, pk)
 
     @action(
         detail=True,
@@ -231,7 +231,8 @@ class RecipeViewSet(ModelViewSet):
     def shopping_cart(self, request, pk):
         if request.method == 'POST':
             return self.add_to(ShoppingCart, request.user, pk)
-        return self.delete_from(ShoppingCart, request.user, pk)
+        else:
+            return self.delete_from(ShoppingCart, request.user, pk)
 
 
 class IngredientViewSet(ModelViewSet):
