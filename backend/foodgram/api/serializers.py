@@ -212,20 +212,10 @@ class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    tags = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Tag.objects.all()
-    )
-    author = UserSerializer(
-        read_only=True,
-        default=serializers.CurrentUserDefault()
-    )
+    tags = serializers.PrimaryKeyRelatedField(many=True)
+    author = UserSerializer(read_only=True)
     image = Base64ImageField()
-    ingredients = RecipeCreateIngredientsSerializer(
-        source='ingredientrecipe_set',
-        many=True,
-        required=True
-    )
+    ingredients = RecipeCreateIngredientsSerializer(many=True)
 
     class Meta:
         model = Recipe
@@ -238,13 +228,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'image',
             'text',
             'cooking_time'
-        ]
-
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=Recipe.objects.all(),
-                fields=('author', 'name')
-            )
         ]
 
     def validate_ingredients(self, value):
