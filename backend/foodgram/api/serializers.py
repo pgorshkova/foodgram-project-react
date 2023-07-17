@@ -281,10 +281,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        author = self.context['request'].user
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data, author=author)
+        recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.update_or_create(recipe=recipe,
                               ingredients=ingredients)
