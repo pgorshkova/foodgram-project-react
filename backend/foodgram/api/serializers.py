@@ -188,17 +188,17 @@ class RecipeSerializer(serializers.ModelSerializer):
             'cooking_time'
         ]
 
-    def get_is_in_shopping_cart(self, obj):
-        if self.context:
-            user = self.context['request'].user
-            return obj.shopping_users.filter(pk=user.pk).exists()
-        return False
-
     def get_is_favorited(self, obj):
-        if self.context:
-            user = self.context['request'].user
-            return obj.favorited_users.filter(pk=user.pk).exists()
-        return False
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return user.favorites.filter(recipe=obj).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return user.shopping.filter(recipe=obj).exists()
 
 
 class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
@@ -295,12 +295,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         instance = super().update(instance, validated_data)
-        instance.tags.clear()
-        instance.tags.set(tags)
-        instance.ingredients.clear()
-        self.update_or_create(recipe=instance,
-                              ingredients=ingredients)
-        instance.save()
+        if tags:
+            instance.tags.clear()
+            instance.tags.set(tags)
+        if ingredients:
+            instance.ingredients.clear()
+            self.update_or_create(recipe=instance,
+                                  ingredients=ingredients)
+        if (instance.image is not None
+                and validated_data.get('image') is not None):
+            instance.image.delete()
         return instance
 
     def to_representation(self, instance):
