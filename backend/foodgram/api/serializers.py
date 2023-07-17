@@ -117,6 +117,20 @@ class UserSerializer(serializers.ModelSerializer):
         return User.objects.filter(pk=user.pk, subscriptions=obj).exists()
 
 
+class IngredientQuantitySerializer(serializers.ModelSerializer):
+
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measure'
+    )
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = IngredientRecipe
+        fields = ('id', 'name', 'measure', 'amount')
+
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -157,6 +171,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time'
         ]
+
+    def get_ingredients(self, obj):
+        return IngredientQuantitySerializer(obj.recipe.all(), many=True).data
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
