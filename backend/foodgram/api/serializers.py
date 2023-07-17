@@ -219,11 +219,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault()
     )
     image = Base64ImageField()
-    ingredients = RecipeCreateIngredientsSerializer(
-        source='ingredientrecipe_set',
-        many=True,
-        required=True
-    )
+    ingredients = RecipeCreateIngredientsSerializer(many=True)
 
     class Meta:
         model = Recipe
