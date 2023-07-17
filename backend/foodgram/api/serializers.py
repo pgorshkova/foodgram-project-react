@@ -199,7 +199,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(write_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        )
 
     class Meta:
         model = IngredientRecipe
@@ -256,22 +258,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 )
             already_exists.append(pk)
         return values
-
-    def validate(self, attrs):
-        cooking_time = attrs.get('cooking_time')
-        if self.context.get('request').method != 'PATCH':
-            if cooking_time is None or cooking_time < 1:
-                raise serializers.ValidationError(
-                    'Cooking time value is not valid.'
-                )
-            return attrs
-        if cooking_time is None:
-            return attrs
-        if cooking_time < 1:
-            raise serializers.ValidationError(
-                'Cooking time value must be greate than zero.'
-            )
-        return attrs
 
     def update_or_create_ingredients(self, instance, ingredients_set):
         data_ingredients = []
