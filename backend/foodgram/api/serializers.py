@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import transaction
+from django.db.models import F
 from django.contrib.auth.models import AnonymousUser
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
@@ -187,6 +188,16 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time'
         ]
+
+    def get_ingredients(self, obj):
+        recipe = obj
+        ingredients = recipe.ingredients.values(
+            'id',
+            'name',
+            'measurement_unit',
+            amount=F('ingredientinrecipe__amount')
+        )
+        return ingredients
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
