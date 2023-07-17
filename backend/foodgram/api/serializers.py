@@ -120,7 +120,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
 
-    id = serializers.IntegerField(
+    ingredient = serializers.IntegerField(
         source='ingredient.pk',
         write_only=True,
     )
@@ -133,7 +133,7 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
         model = IngredientRecipe
         fields = [
             'pk',
-            'id',
+            'ingredient',
             'name',
             'measurement_unit',
             'amount'
