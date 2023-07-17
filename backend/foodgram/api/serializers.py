@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 
 from core.fields import Base64ImageField
 from recipes.models import (Ingredient, IngredientRecipe,
-                            Recipe, Tag, TagRecipe)
+                            Recipe, Tag)
 from users.models import User
 
 
@@ -299,7 +299,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.update_or_create_ingredients(recipe=recipe,
-                                        ingredients=ingredients)
+                                          ingredients=ingredients)
         return recipe
 
     @transaction.atomic
@@ -311,15 +311,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.tags.set(tags)
         instance.ingredients.clear()
         self.update_or_create_ingredients(recipe=instance,
-                                        ingredients=ingredients)
+                                          ingredients=ingredients)
         instance.save()
         return instance
-    
+
     def to_representation(self, instance):
         request = self.context.get('request')
         context = {'request': request}
         return RecipeSerializer(instance,
-                                    context=context).data
+                                context=context).data
 
 
 class RecipeSmallSerializer(serializers.ModelSerializer):
