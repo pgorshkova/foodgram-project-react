@@ -118,32 +118,6 @@ class UserSerializer(serializers.ModelSerializer):
         return User.objects.filter(pk=user.pk, subscriptions=obj).exists()
 
 
-class IngredientRecipeSerializer(serializers.ModelSerializer):
-
-    ingredient = serializers.IntegerField(
-        source='ingredient.pk',
-        write_only=True,
-    )
-    name = serializers.CharField(source='ingredient', read_only=True)
-    measurement_unit = serializers.CharField(
-        source='ingredient.measure', read_only=True
-    )
-
-    class Meta:
-        model = IngredientRecipe
-        fields = [
-            'pk',
-            'ingredient',
-            'name',
-            'measurement_unit',
-            'amount'
-        ]
-        extra_kwargs = {
-            'amount': {'required': True},
-            'id': {'required': True}
-        }
-
-
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -168,11 +142,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         required=False
     )
     image = Base64ImageField()
-    ingredients = IngredientRecipeSerializer(
-        source='ingredientrecipe_set',
-        many=True,
-        required=True
-    )
+    ingredients = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
