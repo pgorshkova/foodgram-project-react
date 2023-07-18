@@ -61,18 +61,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-class TagSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Tag
-        fields = [
-            'id',
-            'name',
-            'color',
-            'slug',
-        ]
-
-
 class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
