@@ -167,7 +167,7 @@ class RecipeViewSet(ModelViewSet):
     def download_shopping_cart(self, *args, **kwargs):
         ingredients = IngredientRecipe.objects.filter(
             recipe__shopping_cart__user=self.request.user).values(
-            'ingredients__measure', 'ingredients__name').annotate(
+            'ingredient__measure', 'ingredient__name').annotate(
             all_amount=Sum('amount')
         )
         result = 'Cписок покупок:\n\nНазвание продукта - Кол-во/Ед.изм.\n'
@@ -177,9 +177,9 @@ class RecipeViewSet(ModelViewSet):
         result = '\n'.join([
             ' '.join(
                 [
-                    str(ingredient['ingredients__name']),
+                    str(ingredient['ingredient__name']),
                     str(ingredient['all_amount']),
-                    str(ingredient['ingredients__measure']),
+                    str(ingredient['ingredient__measure']),
                 ]
             )
             for ingredient in ingredients
