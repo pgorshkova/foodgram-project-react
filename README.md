@@ -1,4 +1,4 @@
-# Сервис Foodgram <img style="margin-left: 10px;" src="https://admprogress.ru/upload/iblock/dcc/Kartinka-obshchepit.jpg" width=64>
+# Сервис Foodgram <img style="margin-left: 10px;" src="[https://admprogress.ru/upload/iblock/dcc/Kartinka-obshchepit.jpg](https://sun6-23.userapi.com/s/v1/if1/zM1oZcLyio7wBeu9GJFp7g032glkabolSRBqf0BIwqP0TbZZ06vgt5QA2eH-AREor8uW1aPu.jpg?size=435x439&quality=96&crop=0,0,435,439&ava=1)" width=64>
 
 Проект **Foodgram** - это сервис для создания и публикации рецептов, который реализован с использованием следующих технологий:
 * **Django + Django REST Framework**
@@ -7,7 +7,7 @@
 * **Docker**
 * **Nginx**
 
-[![Django-app workflow](https://github.com/pgorshkova/foodgram-project-react/actions/workflows/main.yml/badge.svg)](https://github.com/pgorshkova/foodgram-project-react/actions/workflows/main.yml)
+![Django-app workflow](https://github.com/pgorshkova/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
 Основной функционал приложения:
 * Регистрация и аутентификация пользователей
@@ -38,8 +38,8 @@ http://51.250.94.108/
 
 Данные суперпользователя:
 
-    email: confenkina@yandex.ru
-    password: sweetdreams
+    email: user@user.com
+    password: user
 
 
 Админка доступна по адресу:
