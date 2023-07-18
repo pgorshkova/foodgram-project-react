@@ -166,20 +166,15 @@ class RecipeViewSet(ModelViewSet):
     )
     def download_shopping_cart(self, request):
         ingredients = IngredientRecipe.objects.filter(
-            recipe__shopping_cart__user=self.request.user).values(
+            recipe__shopping_cart__user=request.user).values(
             'ingredient__measure', 'ingredient__name').annotate(
-            all_amount=Sum('amount')
+            amount=Sum('amount')
         )
         result = 'Cписок покупок:\n\nНазвание продукта - Кол-во/Ед.изм.\n'
         for ingredient in ingredients:
-            result = '\n'.join([
-                ' '.join(
-                    [
-                        str(ingredient['ingredient__name']),
-                        str(ingredient['all_amount']),
-                        str(ingredient['ingredient__measure']),
-                    ]
-                )
+            result += ''.join([
+                f'{ingredient["ingredient__name"]} - {ingredient["amount"]}/'
+                f'{ingredient["ingredient__measure"]} \n'
             ])
         response = HttpResponse(result, content_type='text/plain')
         response['Content-Disposition'] = ('attachment;'
