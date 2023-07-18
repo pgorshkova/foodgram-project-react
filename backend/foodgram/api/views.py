@@ -10,8 +10,8 @@ from rest_framework.status import (HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT,
                                    HTTP_201_CREATED)
 from rest_framework.viewsets import ModelViewSet
 
-from recipes.models import (Favorite, Ingredient, Recipe, IngredientRecipe,
-                            ShoppingCart, Tag)
+from recipes.models import (Favorite, Ingredient, IngredientRecipe,
+                            Recipe, ShoppingCart, Tag)
 from users.models import User
 from .filters import RecipeFilter, IngredientFilter
 from .permissions import CustomRecipePermissions
