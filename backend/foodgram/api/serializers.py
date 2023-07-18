@@ -124,6 +124,7 @@ class IngredientQuantitySerializer(serializers.ModelSerializer):
     measure = serializers.ReadOnlyField(
         source='ingredient.measure'
     )
+    amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientRecipe
@@ -172,7 +173,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ]
 
     def get_ingredients(self, obj):
-        return IngredientQuantitySerializer(obj.ingredients.all(),
+        return IngredientQuantitySerializer(obj.recipe.all(),
                                             many=True).data
 
     def get_is_favorited(self, obj):

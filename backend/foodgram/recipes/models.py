@@ -122,6 +122,7 @@ class IngredientRecipe(models.Model):
     )
     recipe = models.ForeignKey(
         Recipe,
+        related_name='recipe',
         on_delete=models.CASCADE)
     amount = models.IntegerField(
         validators=[MinValueValidator(1, 'Сумма не может быть меньше  "1".')]
