@@ -10,7 +10,7 @@ from rest_framework.status import (HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT,
                                    HTTP_201_CREATED)
 from rest_framework.viewsets import ModelViewSet
 
-from recipes.models import (Favorite, Ingredient, Recipe,
+from recipes.models import (Favorite, Ingredient, Recipe, IngredientRecipe,
                             ShoppingCart, Tag)
 from users.models import User
 from .filters import RecipeFilter, IngredientFilter
@@ -165,16 +165,16 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, *args, **kwargs):
-        Recipe._meta.ordering = []
-        queryset = (Recipe.objects.filter(
+        ingredients = IngredientRecipe.objects.filter(
             shopping_users=self.request.user).values(
             'ingredients__measure', 'ingredients__name').annotate(
-            all_amount=Sum('ingredientrecipe__amount')
-        ))
-        response = HttpResponse(content_type='text/plain')
+            all_amount=Sum('amount')
+        )
+        result = 'Cписок покупок:\n\nНазвание продукта - Кол-во/Ед.изм.\n'
+        response = HttpResponse(result, content_type='text/plain')
         response['Content-Disposition'] = ('attachment;'
                                            'filename="shopping_list.txt"')
-        data = '\n'.join([
+        result = '\n'.join([
             ' '.join(
                 [
                     str(ingredient['ingredients__name']),
@@ -182,10 +182,8 @@ class RecipeViewSet(ModelViewSet):
                     str(ingredient['ingredients__measure']),
                 ]
             )
-            for ingredient in queryset
+            for ingredient in ingredients
         ])
-        response.write(data)
-        Recipe._meta.ordering = ['-created']
         return response
 
     def add_to(self, model, user, pk):
