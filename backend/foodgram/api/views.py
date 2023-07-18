@@ -169,7 +169,7 @@ class RecipeViewSet(ModelViewSet):
         queryset = (Recipe.objects.filter(
             shopping_users=self.request.user).values(
             'ingredients__measure', 'ingredients__name').annotate(
-            all_amount=Sum('ingredientrecipe__amount')
+            amount=Sum('amount')
         ))
         response = HttpResponse(content_type='text/plain')
         response['Content-Disposition'] = ('attachment;'
