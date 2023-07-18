@@ -164,26 +164,26 @@ class RecipeViewSet(ModelViewSet):
         methods=['get', ],
         permission_classes=[IsAuthenticated]
     )
-    def download_shopping_cart(self, *args, **kwargs):
+    def download_shopping_cart(self, request):
         ingredients = IngredientRecipe.objects.filter(
             recipe__shopping_cart__user=self.request.user).values(
             'ingredient__measure', 'ingredient__name').annotate(
             all_amount=Sum('amount')
         )
         result = 'Cписок покупок:\n\nНазвание продукта - Кол-во/Ед.изм.\n'
+        for ingredient in ingredients:
+            result = '\n'.join([
+                ' '.join(
+                    [
+                        str(ingredient['ingredient__name']),
+                        str(ingredient['all_amount']),
+                        str(ingredient['ingredient__measure']),
+                    ]
+                )
+            ])
         response = HttpResponse(result, content_type='text/plain')
         response['Content-Disposition'] = ('attachment;'
                                            'filename="shopping_list.txt"')
-        result = '\n'.join([
-            ' '.join(
-                [
-                    str(ingredient['ingredient__name']),
-                    str(ingredient['all_amount']),
-                    str(ingredient['ingredient__measure']),
-                ]
-            )
-            for ingredient in ingredients
-        ])
         return response
 
     def add_to(self, model, user, pk):
